@@ -8,6 +8,7 @@
 #include <psp2/display.h>
 #include <psp2/kernel/sysmem.h>
 #include <psp2/kernel/threadmgr.h>
+#include <psp2/kernel/clib.h>
 
 enum {
 	SCREEN_WIDTH = 960,
@@ -50,7 +51,9 @@ int g_log_mutex;
 void psvDebugScreenInit() {
 	g_log_mutex = sceKernelCreateMutex("log_mutex", 0, 0, NULL);
 
-	SceKernelAllocMemBlockOpt opt = { 0 };
+	SceKernelAllocMemBlockOpt opt;
+	sceClibMemset(&opt, 0, sizeof(opt));
+
 	#ifdef VITASDK
 	opt.size = 4 * 5;
 	#else
@@ -59,12 +62,12 @@ void psvDebugScreenInit() {
 	opt.attr = 0x00000004;
 	opt.alignment = FRAMEBUFFER_ALIGNMENT;
 	SceUID displayblock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, FRAMEBUFFER_SIZE, &opt);
-	printf("displayblock: 0x%08x", displayblock);
+	sceClibPrintf("displayblock: 0x%08x\n", displayblock);
 	void *base;
 	sceKernelGetMemBlockBase(displayblock, &base);
-	// LOG("base: 0x%08x", base);
 
-	SceDisplayFrameBuf framebuf = { 0 };
+	SceDisplayFrameBuf framebuf;
+	sceClibMemset(&framebuf, 0, sizeof(framebuf));
 	framebuf.size = sizeof(framebuf);
 	framebuf.base = base;
 	framebuf.pitch = SCREEN_WIDTH;
@@ -74,7 +77,7 @@ void psvDebugScreenInit() {
 
 	g_vram_base = base;
 
-	int ret = sceDisplaySetFrameBuf(&framebuf, SCE_DISPLAY_UPDATETIMING_NEXTVSYNC);
+	sceDisplaySetFrameBuf(&framebuf, SCE_DISPLAY_UPDATETIMING_NEXTVSYNC);
 
 	g_fg_color = 0xFFFFFFFF;
 	g_bg_color = 0x00000000;
@@ -98,7 +101,7 @@ static void printTextScreen(const char * text)
 	Color *vram_ptr;
 	Color *vram;
 
-	for (c = 0; c < strlen(text); c++) {
+	for (c = 0; c < sceClibStrnlen(text, 0xFFF); c++) {
 		if (gX + 8 > SCREEN_WIDTH) {
 			gY += 8;
 			gX = 0;
@@ -140,7 +143,7 @@ void psvDebugScreenPrintf(const char *format, ...) {
 
 	va_list opt;
 	va_start(opt, format);
-	vsnprintf(buf, sizeof(buf), format, opt);
+	sceClibVsnprintf(buf, sizeof(buf), format, opt);
 	printTextScreen(buf);
 	va_end(opt);
 
