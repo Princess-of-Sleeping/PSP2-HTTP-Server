@@ -39,19 +39,13 @@
 
 #define printf psvDebugScreenPrintf
 
-#define BASE_PATH "ux0:www"
+#define BASE_PATH "host0:www"
 
 char initparam_buf[0x4000];
 
 static int rsock, len;
 
 const char *sceClibStrchr(const char *s, int ch);
-
-typedef struct SceSysmoduleOpt {
-	int flags;
-	int *result;
-	int unused[2];
-} SceSysmoduleOpt;
 
 typedef struct ScePafInit {
 	SceSize global_heap_size;
@@ -332,10 +326,11 @@ int http_send_thread(SceSize args, void *argp){
 
 	SceUID thid = http_send_param.thid_work;
 	int wsock = http_send_param.wsock;
-
+/*
 	http_send_param.memblk_uid = sceKernelAllocMemBlock("HttpArg", SCE_KERNEL_MEMBLOCK_TYPE_USER_RW, 0x2000, NULL);
-
 	sceKernelGetMemBlockBase(http_send_param.memblk_uid, &http_send_param.arg);
+*/
+	http_send_param.arg = my_malloc(0x2000);
 
 	sceNetRecv(wsock, http_send_param.arg, 0x2000, 0);
 
@@ -470,7 +465,9 @@ int http_send_thread(SceSize args, void *argp){
 	sceNetShutdown(wsock, SCE_NET_SHUT_RDWR);
 	sceNetSocketClose(wsock);
 
-	sceKernelFreeMemBlock(http_send_param.memblk_uid);
+	my_free(http_send_param.arg);
+
+	// sceKernelFreeMemBlock(http_send_param.memblk_uid);
 
 	if(http_send_param.thid != sceKernelGetThreadId()){
 

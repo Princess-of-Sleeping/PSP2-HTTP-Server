@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   if(DEFINED ENV{VITASDK})
@@ -13,10 +13,10 @@ include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 set(VITA_APP_NAME "PSP2-HTTP-Server")
 set(VITA_TITLEID  "PSWS00001")
-
 set(VITA_VERSION  "01.00")
+set(SELF_NAME     "http_server")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wl,-q -Wall -O3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -fno-inline -fno-builtin")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 
 enable_language(C ASM)
@@ -51,12 +51,12 @@ set_target_properties(${PROJECT_NAME}
   PROPERTIES LINK_FLAGS "-nostdlib"
 )
 
-vita_create_self(eboot.bin ${PROJECT_NAME}
+vita_create_self(${SELF_NAME}.self ${PROJECT_NAME}
   UNSAFE
   CONFIG exports.yml
 )
 
-vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} eboot.bin
+vita_create_vpk(${SELF_NAME}.vpk ${VITA_TITLEID} ${SELF_NAME}.self
   VERSION ${VITA_VERSION}
   NAME ${VITA_APP_NAME}
 )
