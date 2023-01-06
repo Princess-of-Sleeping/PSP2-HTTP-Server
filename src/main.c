@@ -45,8 +45,6 @@ char initparam_buf[0x4000];
 
 static int rsock, len;
 
-const char *sceClibStrchr(const char *s, int ch);
-
 typedef struct ScePafInit {
 	SceSize global_heap_size;
 	int a2;
@@ -541,7 +539,7 @@ int server_main_thread(SceSize args, void *argp){
 
 	serveraddr.sin_family = SCE_NET_AF_INET;
 	serveraddr.sin_addr.s_addr = sceNetHtonl(SCE_NET_INADDR_ANY);
-	serveraddr.sin_port = sceNetHtons(8080);
+	serveraddr.sin_port = sceNetHtons(80);
 
 	res = sceNetBind(rsock, (SceNetSockaddr *)&serveraddr, sizeof(serveraddr));
 	if(res < 0){
@@ -549,7 +547,7 @@ int server_main_thread(SceSize args, void *argp){
 		goto end;
 	}
 
-	res = sceNetListen(rsock,128);
+	res = sceNetListen(rsock, 128);
 	if(res < 0){
 		sceClibPrintf("sceNetListen : 0x%X\n", res);
 		goto end;
@@ -560,7 +558,7 @@ int server_main_thread(SceSize args, void *argp){
 		goto end;
 	}
 
-	printf("#access to http://%s:8080/\n\n", info.ip_address);
+	printf("#access to http://%s:80/\n\n", info.ip_address);
 
 	while(1){
 		len = sizeof(client);
